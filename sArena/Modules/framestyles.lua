@@ -125,7 +125,7 @@ function module:OnEvent(event, ...)
 			end
 			
 			if self.db.powerBarFontSize > 0 then
-				arenaFrame.manabar.TextString:SetFont(font, self.db.healthBarFontSize, flags)
+				arenaFrame.manabar.TextString:SetFont(font, self.db.powerBarFontSize, flags)
 				arenaFrame.manabar.TextString:Show()
 			else
 				arenaFrame.manabar.TextString:Hide()

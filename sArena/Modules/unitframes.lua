@@ -9,6 +9,7 @@ module.defaultSettings = {
 	statusTextScale = 1,
 	classColors = true,
 	hideNames = false,
+	hideBlizzardFrames = true,
 }
 
 module.optionsTable = {
@@ -44,20 +45,58 @@ module.optionsTable = {
 		name = "Class-colored health bars",
 		width = "full",
 	},
+	hideBlizzardFrames = {
+		order = 7,
+		type = "toggle",
+		name = "Hide Blizzard arena frames",
+		hidden = function() return not CompactArenaFrame end,
+		width = "full",
+		set = module.UpdateSettings,
+	},
 }
 
 local hiddenFrame = CreateFrame("Frame", nil, UIParent)
 hiddenFrame:Hide()
 
-local dummyFrame = CreateFrame("Frame", nil, UIParent)
-
-local sArenaEnemyFrames = ArenaEnemyFrames
+local sArenaEnemyFrames = ArenaEnemyFrame1:GetParent()
 sArenaEnemyFrames:Hide()
 sArenaEnemyFrames:SetMovable(true)
 
-ArenaEnemyFrames = dummyFrame
+local function ShowEnemyFrames()
+	if not InCombatLockdown() then
+		sArenaEnemyFrames:Show()
+	end
+end
 
-local firstPlayerEnteringWorld = false
+hooksecurefunc("ArenaEnemyFrames_UpdateVisible", ShowEnemyFrames)
+
+local function HideBlizzardFrames()
+	local frame = CompactArenaFrame
+	if not frame then
+		return
+	end
+
+	if module.db.hideBlizzardFrames and not EditModeManagerFrame:IsEditModeActive() then
+		if not frame:IsShown() then
+			return
+		end
+
+		if InCombatLockdown() then
+			frame:SetAlpha(0)
+		else
+			frame:SetAlpha(1)
+			frame:Hide()
+		end
+	else
+		frame:SetAlpha(1)
+	end
+end
+
+local combatEndFrame = CreateFrame("Frame")
+combatEndFrame:SetScript("OnEvent", function()
+	ShowEnemyFrames()
+	HideBlizzardFrames()
+end)
 
 function module:OnEvent(event, ...)
 	if event == "UNIT_AURA" then
@@ -75,13 +114,19 @@ function module:OnEvent(event, ...)
 
 		--ArenaEnemyBackground:SetParent(hiddenFrame)
 
+		if CompactArenaFrame and CompactArenaFrame.UpdateVisibility then
+			hooksecurefunc(CompactArenaFrame, "UpdateVisibility", HideBlizzardFrames)
+		end
+		combatEndFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+
 		self:OnEvent("UPDATE_SETTINGS")
 	elseif event == "PLAYER_ENTERING_WORLD" then
-		if not firstPlayerEnteringWorld then
-			sArenaEnemyFrames:Show()
-			firstPlayerEnteringWorld = true
-		end
+		ShowEnemyFrames()
 	elseif event == "TEST_MODE" then
+		if addon.testMode then
+			ShowEnemyFrames()
+		end
+
 		for i = 1, MAX_ARENA_ENEMIES do
 			local arenaFrame = _G["ArenaEnemyFrame"..i]
 
@@ -115,6 +160,8 @@ function module:OnEvent(event, ...)
 				arenaFrame:SetPoint("TOP", _G["ArenaEnemyFrame"..i-1], "BOTTOM", 0, self.db.frameSpacing * -1)
 			end
 		end
+
+		HideBlizzardFrames()
 	end
 end
 

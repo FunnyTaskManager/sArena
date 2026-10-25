@@ -134,10 +134,10 @@ function addon:CreateModule(name)
 end
 
 function addon:isNeedStart(frame, sentCD)
-	cooldown = tonumber(sentCD);
-	activeCooldown = frame.time
-	endTimeCooldown = frame.starttime + activeCooldown
-	diff = endTimeCooldown - GetTime()
+	local cooldown = tonumber(sentCD);
+	local activeCooldown = frame.time
+	local endTimeCooldown = frame.starttime + activeCooldown
+	local diff = endTimeCooldown - GetTime()
 	if diff < cooldown then
 		return true
 	end
@@ -166,8 +166,6 @@ function addon:OnEvent(event, ...)
 		end
 
 		addon.db = LibStub("AceDB-3.0"):New(addonName.."DB", addon.defaultSettings, true)
-		TTT = addon.db
-		TTTT = addon
 		addon.optionsTable.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(addon.db)
 
 		LibStub("AceConfig-3.0"):RegisterOptionsTable(addonName, addon.optionsTable)
@@ -296,8 +294,8 @@ end
 function addon.detectConstellation(unit)
 	for key = 1, 40 do
 		local _, _, icon, _, _, duration, expirationTime, _, _, _, spellID = UnitAura(unit, key, "HARMFUL")
-		if spellID ~= nil and constellations2Spells[spellID] then
-			return constellations2Spells[spellID]
+		if spellID ~= nil and addon.constellations2Spells[spellID] then
+			return addon.constellations2Spells[spellID]
 		end
 	end
 

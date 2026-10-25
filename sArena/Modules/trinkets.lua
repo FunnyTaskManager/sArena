@@ -21,7 +21,7 @@ module.optionsTable = {
 	}
 }
 
-function TRINKET_UNIT_SPELLCAST_SUCCEEDED(self, ...)
+local function TRINKET_UNIT_SPELLCAST_SUCCEEDED(self, ...)
 	local _, event, sourceGUID, sourceName, _, destGUID, destName, _, spellId, spellName, _, _, _, _, _ = select(1,...)
 
 	if UnitGUID(self.unit) ~= sourceGUID then return end

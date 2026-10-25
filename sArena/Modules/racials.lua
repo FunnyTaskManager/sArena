@@ -28,7 +28,7 @@ local constellations = {
 	[24] = "None"
 }
 
-constellations2Spells = {
+local constellations2Spells = {
 	[371796] = {
 		id = 375015,
 		icon = select(3, GetSpellInfo(375015)),
@@ -71,13 +71,12 @@ constellations2Spells = {
 	},
 	[371788] = { --синд
 		id = 375001,
-		alt = {["316421"] = 1, ["302387"] = 1, ["316419"] = 1, ["316420"] = 1},
-		icon = select(3, GetSpellInfo(316418)),
+		icon = select(3, GetSpellInfo(375001)),
 		cd = 120,
 	},
 	[371805] = {
 		id = 374994,
-		icon = select(3, GetSpellInfo(316386)),
+		icon = select(3, GetSpellInfo(374994)),
 		cd = 120,
 	},
 	[371806] = {
@@ -87,7 +86,7 @@ constellations2Spells = {
 	},
 	[371800] = {
 		id = 375018,
-		icon = select(3, GetSpellInfo(316254)),
+		icon = select(3, GetSpellInfo(375018)),
 		cd = 120,
 	},
 	[371802] = {
@@ -152,6 +151,8 @@ constellations2Spells = {
 	},
 }
 
+addon.constellations2Spells = constellations2Spells
+
 module.defaultSettings = {
 	x = -74,
 	y = -19,
@@ -172,27 +173,7 @@ module.optionsTable = {
 	}
 }
 
-function RACIAL_UNIT_SPELLCAST_SUCCEEDED_SECOND_TRY(self, unit, ability)
-    if self.unit ~= unit then return end
-
-    local spellId
-
-    if ability == 'Духовные крылья' then
-        spellId = 320552
-    end
-
-    if not spellId then return end
-    for race, raceData in pairs(constellations2Spells) do
-        if spellId == raceData.id or (raceData.alt and raceData.alt[tostring(spellId)]) then
-            isRun = true
-            self.time = tonumber(raceData.cd)
-            self.starttime = GetTime()
-            CooldownFrame_SetTimer(self.cooldown, GetTime(), raceData.cd, 1)
-        end
-    end
-end
-
-function RACIAL_UNIT_SPELLCAST_SUCCEEDED(self, ...)
+local function RACIAL_UNIT_SPELLCAST_SUCCEEDED(self, ...)
 	local _, event, sourceGUID, sourceName, _, destGUID, destName, _, spellId, spellName, _, _, _, _, _ = select(1,...)
 
 	if UnitGUID(self.unit) ~= sourceGUID then return end
@@ -203,7 +184,7 @@ function RACIAL_UNIT_SPELLCAST_SUCCEEDED(self, ...)
 	local isRun = false
 	
 	for race, raceData in pairs(constellations2Spells) do
-		if spellId == raceData.id or (raceData.alt and raceData.alt[tostring(spellId)]) then
+		if spellId == raceData.id then
 			isRun = true
 			self.time = tonumber(raceData.cd)
 			self.starttime = GetTime()
@@ -246,7 +227,6 @@ function module:OnEvent(event, ...)
 			CC.time = 0
 			CC.starttime = 0
 			CC:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-			CC:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 			CC:SetScript("OnEvent", function(self, event, ...) return self[event](self, ...) end)
 			arenaFrame.racial = CC
 		else
@@ -254,7 +234,6 @@ function module:OnEvent(event, ...)
 		end
 
 		CC.COMBAT_LOG_EVENT_UNFILTERED = RACIAL_UNIT_SPELLCAST_SUCCEEDED
-		CC.UNIT_SPELLCAST_SUCCEEDED = RACIAL_UNIT_SPELLCAST_SUCCEEDED_SECOND_TRY
 
 		if event == "UNIT_AURA" then
 			local raceData = addon.detectConstellation(CC.unit)

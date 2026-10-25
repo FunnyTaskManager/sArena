@@ -15,7 +15,7 @@ module.optionsTable = {
 		desc = "|cffff5555NOTICE:|r Changing this setting will cause a UI reload.",
 		get = function() return GetCVar("showArenaEnemyPets") == "1" and true or false end,
 		set = function(info, val)
-			SHOW_ARENA_ENEMY_PETS = val and 1 or 0
+			SHOW_ARENA_ENEMY_PETS = val and "1" or "0"
 			SetCVar("showArenaEnemyPets", val and 1 or 0)
 			ReloadUI()
 		end,
